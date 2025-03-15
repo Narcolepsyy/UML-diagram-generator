@@ -107,6 +107,7 @@ def main():
             messages=[
                 {"role": "user", "content": prompt}
             ],
+                temperature=0,
         )
             # using regex to extract the actors, use cases and relationships
 
@@ -225,6 +226,7 @@ def main():
             messages=[
                 {"role": "user", "content": prompt}
             ],
+                temperature = 0,
         )
             
             response_text = message.content[0].text
