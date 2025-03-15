@@ -84,7 +84,7 @@ def main():
             prompt = f"""
             Dây là yêu cầu phần mềm:{text}
 
-            **BƯỚC 1:** Liệt kê **toàn bộ các actor**, không coi các hệ thống tự động như một actor.
+            **BƯỚC 1:** Liệt kê **toàn bộ các actor**, bỏ qua các actor hệ thống, chú ý các actor kế thừa.
             **BƯỚC 2:** Liệt kê **toàn bộ các use case**.
             **BƯỚC 3:** Xác định **tất cả các mối quan hệ** và cho biết loại quan hệ, bao gồm:
             - **Association** (Actor liên kết với Use Case)
@@ -107,7 +107,7 @@ def main():
             messages=[
                 {"role": "user", "content": prompt}
             ],
-                temperature=0,
+            temperature=0,
         )
             # using regex to extract the actors, use cases and relationships
 
@@ -190,7 +190,7 @@ def main():
             prompt = f"""
             Dây là yêu cầu phần mềm:{text}
 
-            **BƯỚC 1:** Liệt kê toàn bộ class trong biểu đồ class không coi các hệ thống tự động như một class.
+            **BƯỚC 1:** Liệt kê toàn bộ class trong biểu đồ class, bỏ qua các class hệ thống.
             **BƯỚC 2:** Liệt kê toàn bộ các phưong thức và thuộc tính của mỗi class.
             **BƯỚC 3:** Xác định tất cả các mối quan hệ và cho biết loại quan hệ, bao gồm:
             - **Association** (Class1 liên kết với Class2)
@@ -226,7 +226,7 @@ def main():
             messages=[
                 {"role": "user", "content": prompt}
             ],
-                temperature = 0,
+            temperature=0,
         )
             
             response_text = message.content[0].text
