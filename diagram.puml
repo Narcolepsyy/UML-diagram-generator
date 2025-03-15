@@ -1,0 +1,67 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+class User {
+  userId
+  name
+  email
+  login()
+  logout()
+  updateProfile()
+}
+
+class Student {
+  studentId
+  registeredCourses
+  registerCourse()
+  unregisterCourse()
+  viewRegisteredCourses()
+}
+
+class Lecturer {
+  lecturerId
+  teachingCourses
+  viewClassStudents()
+  gradeStudent()
+  viewTeachingCourses()
+}
+
+class Administrator {
+  adminId
+  addCourse()
+  editCourse()
+  deleteCourse()
+  assignLecturerToCourse()
+}
+
+class Course {
+  courseId
+  courseName
+  credits
+  registeredStudents
+  addStudent()
+  removeStudent()
+  getStudentList()
+}
+
+class Registration {
+  registrationId
+  registrationDate
+  student
+  course
+  grade
+  registerCourse()
+  unregisterCourse()
+  updateGrade()
+}
+
+Student <|-- User
+Lecturer <|-- User
+Administrator <|-- User
+Student "1" --> "*:0" Course
+Student "1:0" --> "*" Registration
+Course "1:0" --> "*" Registration
+Lecturer "1:0" --> "*" Course
+Course o-- Student
+
+@enduml
