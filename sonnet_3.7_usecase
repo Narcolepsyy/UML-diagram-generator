@@ -1,0 +1,44 @@
+@startuml
+            left to right direction
+            skinparam ActorPadding 30
+            skinparam UseCasePadding 25
+            skinparam Linetype ortho
+            skinparam dpi 150
+            legend left
+            Association  --> Solid Line
+            Include      ..> Dashed Line
+            Extend       ..|> Dotted Line
+            endlegend
+            ' Define actors
+            actor "Người dùng" as Người_dùng
+actor "Thành viên" as Thành_viên
+actor "Thủ thư" as Thủ_thư
+
+' Define use cases
+usecase "Đăng ký thẻ thành viên" as Đăng_ký_thẻ_thành_viên
+usecase "Thanh toán phí thẻ thành viên" as Thanh_toán_phí_thẻ_thành_viên
+usecase "Mượn sách" as Mượn_sách
+usecase "Trả sách" as Trả_sách
+usecase "Nhận thông báo khi sách được hoàn trả" as Nhận_thông_báo_khi_sách_được_hoàn_trả
+usecase "Nhận thông báo khi sách được nhập về" as Nhận_thông_báo_khi_sách_được_nhập_về
+usecase "Nhận đề xuất sách phù hợp" as Nhận_đề_xuất_sách_phù_hợp
+usecase "Tiếp nhận đăng ký thành viên" as Tiếp_nhận_đăng_ký_thành_viên
+usecase "Tiếp nhận mượn sách" as Tiếp_nhận_mượn_sách
+usecase "Tiếp nhận trả sách" as Tiếp_nhận_trả_sách
+
+' Define relationships
+Thành_viên <|-- Người_dùng
+Người_dùng -- Đăng_ký_thẻ_thành_viên
+Thành_viên -- Mượn_sách
+Thành_viên -- Trả_sách
+Thành_viên -- Nhận_thông_báo_khi_sách_được_hoàn_trả
+Thành_viên -- Nhận_thông_báo_khi_sách_được_nhập_về
+Thành_viên -- Nhận_đề_xuất_sách_phù_hợp
+Thủ_thư -- Tiếp_nhận_đăng_ký_thành_viên
+Thủ_thư -- Tiếp_nhận_mượn_sách
+Thủ_thư -- Tiếp_nhận_trả_sách
+Đăng_ký_thẻ_thành_viên <. Thanh_toán_phí_thẻ_thành_viên
+Mượn_sách .> Nhận_thông_báo_khi_sách_được_hoàn_trả
+Mượn_sách .> Nhận_thông_báo_khi_sách_được_nhập_về
+
+@enduml
