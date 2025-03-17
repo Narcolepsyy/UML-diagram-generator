@@ -190,7 +190,7 @@ def main():
             prompt = f"""
             Dây là yêu cầu phần mềm:{text}
 
-            **BƯỚC 1:** Liệt kê toàn bộ class trong biểu đồ class, bỏ qua các class hệ thống.
+            **BƯỚC 1:** Liệt kê toàn bộ class trong biểu đồ class. Bỏ qua các class hệ thống.
             **BƯỚC 2:** Liệt kê toàn bộ các phưong thức và thuộc tính của mỗi class.
             **BƯỚC 3:** Xác định tất cả các mối quan hệ và cho biết loại quan hệ, bao gồm:
             - **Association** (Class1 liên kết với Class2)
