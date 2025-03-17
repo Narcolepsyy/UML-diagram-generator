@@ -79,7 +79,8 @@ def main():
             text = uploaded_file.getvalue().decode("utf-8")
             st.write(text)
     # allow the user to input the text
-    text = st.text_area("Introduce the text", value="")
+    if uploaded_file is None:
+        text = st.text_area("Introduce the text")
     # if the user click the button, generate the use case
 
     client = anthropic.Client(api_key=anthropic_api_key)
@@ -87,7 +88,7 @@ def main():
             prompt = f"""
             Đây là yêu cầu phần mềm:{text}
 
-            **BƯỚC 1:** Liệt kê **toàn bộ các actor**, bỏ qua các actor hệ thống, chú ý các actor kế thừa.
+            **BƯỚC 1:** Liệt kê **toàn bộ các actor**, chú ý các actor kế thừa.
             **BƯỚC 2:** Liệt kê **toàn bộ các use case**.
             **BƯỚC 3:** Xác định **tất cả các mối quan hệ** và cho biết loại quan hệ, bao gồm:
             - **Association** (Actor liên kết với Use Case)
@@ -110,7 +111,6 @@ def main():
                 {"role": "user", "content": prompt}
             ],
             temperature=0,
-            top_p=1,
         )
             # using regex to extract the actors, use cases and relationships
 
@@ -119,7 +119,7 @@ def main():
             if match:
                 json_text = match.group(1)
                 data = json.loads(json_text)  # Chuyển thành Python dictionary
-                
+                st.write(data)
                 # In nội dung JSON thuần túy
             else:
                 data = json.loads(response_text)
@@ -259,36 +259,39 @@ def main():
             plantuml_code += "skinparam classAttributeIconSize 0\n\n"
 
             # Define classes
-            for cls in data['classes']:
-                plantuml_code += f"class {cls['name']} {{\n"
-                for attr in cls['attributes']:
-                    plantuml_code += f"  {attr}\n"
-                for method in cls['methods']:
-                    plantuml_code += f"  {method}\n"
-                plantuml_code += "}\n\n"
+            plantuml_code = """@startuml
+            left to right direction
+            skinparam ActorPadding 30
+            skinparam UseCasePadding 25
+            skinparam Linetype ortho
+            skinparam dpi 150
+            legend left
+            Association  --> Solid Line
+            Include      ..> Dashed Line
+            endlegend
+            ' Define actors
+            """
+            for actor in data['actors']:
+                plantuml_code += f"actor \"{actor}\" as {actor.replace(' ', '_')}\n"
 
-            # Define relationships
+            plantuml_code += "\n' Define use cases\n"
+            for use_case in data['use_cases']:
+                plantuml_code += f"usecase \"{use_case}\" as {use_case.replace(' ', '_')}\n"
+
+            plantuml_code += "\n' Define relationships\n"
             for relation in data['relationships']:
-                entity1 = relation[0]
-                entity2 = relation[1]
+                entity1 = relation[0].replace(' ', '_')
+                entity2 = relation[1].replace(' ', '_')
                 relation_type = relation[2]
-                multiplicity = relation[3]
                 
-                if relation_type == "Inheritance":
+                if relation_type == "Association":
+                    plantuml_code += f"{entity1} -- {entity2}\n"
+                elif relation_type == "Extend":
                     plantuml_code += f"{entity1} <|-- {entity2}\n"
-                elif relation_type == "Association":
-                    if '-' in multiplicity:
-                        multiplicity_start, multiplicity_end = multiplicity.split('-')
-                        plantuml_code += f"{entity1} \"{multiplicity_start}\" --> \"{multiplicity_end}\" {entity2}\n"
-                    elif '..' in multiplicity: # Multiplicity range
-                        multiplicity_start, multiplicity_end = multiplicity.split('..')
-                        plantuml_code += f"{entity1} \"{multiplicity_start}\" --> \"{multiplicity_end}\" {entity2}\n"
-                    else:
-                        plantuml_code += f"{entity1} --> {entity2}\n"
-                elif relation_type == "Aggregation":
-                    plantuml_code += f"{entity1} o-- {entity2}\n"
-                elif relation_type == "Composition":
-                    plantuml_code += f"{entity1} *-- {entity2}\n"
+                elif relation_type == "Include":
+                    plantuml_code += f"{entity1} <. {entity2}\n"
+                elif relation_type == "Generalization":
+                    plantuml_code += f"{entity1} <|-- {entity2}\n"
 
             plantuml_code += "\n@enduml"
             uml_file = "diagram.puml"
