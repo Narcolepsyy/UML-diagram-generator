@@ -12,7 +12,7 @@ dotenv.load_dotenv()
 
 
 anthropic_models = [
-    "claude-3-7-sonnet-20250219"
+    "claude-3-opus-20240229"
 ]
 
 
@@ -78,11 +78,14 @@ def main():
         elif uploaded_file.type == "text/plain":
             text = uploaded_file.getvalue().decode("utf-8")
             st.write(text)
-    
+    # allow the user to input the text
+    text = st.text_area("Introduce the text", value="")
+    # if the user click the button, generate the use case
+
     client = anthropic.Client(api_key=anthropic_api_key)
     if st.button("🤖 Generate use case UML Diagram"):
             prompt = f"""
-            Dây là yêu cầu phần mềm:{text}
+            Đây là yêu cầu phần mềm:{text}
 
             **BƯỚC 1:** Liệt kê **toàn bộ các actor**, bỏ qua các actor hệ thống, chú ý các actor kế thừa.
             **BƯỚC 2:** Liệt kê **toàn bộ các use case**.
@@ -91,7 +94,6 @@ def main():
             - **Include** (Use Case A bắt buộc gọi Use Case B)
             - **Extend** (Use Case A mở rộng Use Case B)
             - **Generalization** (Actor kế thừa từ Actor khác) chú ý không bỏ sót quan hệ này.
-            
             Xuất định dạng json schema có cấu trúc:
             {{
                 "actors": ["Actor1", "Actor2", ...],
@@ -108,6 +110,7 @@ def main():
                 {"role": "user", "content": prompt}
             ],
             temperature=0,
+            top_p=1,
         )
             # using regex to extract the actors, use cases and relationships
 
@@ -119,7 +122,8 @@ def main():
                 
                 # In nội dung JSON thuần túy
             else:
-                print("Không tìm thấy JSON trong phản hồi!")
+                data = json.loads(response_text)
+                st.write(data)
             
             # generate the plantuml code
             plantuml_code = """@startuml
@@ -183,15 +187,16 @@ def main():
             # show the download button
             st.write("## Download UML Diagram")
             st.markdown(f'<a href="data:file/txt;base64,{file_to_base64(uml_file).decode()}" download="{uml_file}">Download PlantUML file</a>', unsafe_allow_html=True)
-
+            st.write("## Download Image")
+            st.markdown(f'<a href="data:image/png;base64,{file_to_base64(uml_image_file).decode()}" download="{uml_image_file}">Download Image</a>', unsafe_allow_html=True)
     if st.button("🤖 Generate class UML Diagram"):
             # Initialize the model
             
             prompt = f"""
-            Dây là yêu cầu phần mềm:{text}
+            Đây là yêu cầu phần mềm:{text}
 
             **BƯỚC 1:** Liệt kê toàn bộ class trong biểu đồ class. Bỏ qua các class hệ thống.
-            **BƯỚC 2:** Liệt kê toàn bộ các phưong thức và thuộc tính của mỗi class.
+            **BƯỚC 2:** Liệt kê toàn bộ các phương thức và thuộc tính của mỗi class.
             **BƯỚC 3:** Xác định tất cả các mối quan hệ và cho biết loại quan hệ, bao gồm:
             - **Association** (Class1 liên kết với Class2)
             - **Aggregation** (Class1 chứa Class2)
@@ -221,19 +226,35 @@ def main():
 
             """
             message = client.messages.create(
-            model="claude-3-7-sonnet-20250219",  # Ensure this is a valid model
-            max_tokens=1024,
-            messages=[
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0,
-        )
+                model="claude-3-5-haiku-20241022",
+                max_tokens=8192,
+                temperature=0.1,
+                messages=[
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": prompt
+                            }
+                        ]
+                    }
+                ]
+            )
             
             response_text = message.content[0].text
             match = re.search(r'```json\n(.*?)\n```', response_text, re.DOTALL)
             if match:
                 json_text = match.group(1)
                 data = json.loads(json_text)
+                st.write(data)
+            else:
+                data = json.loads(response_text)
+                st.write(data)
+            plantuml_code = "@startuml\n"
+            plantuml_code += "skinparam classAttributeIconSize 0\n\n"
+
+            # Define classes
             plantuml_code = "@startuml\n"
             plantuml_code += "skinparam classAttributeIconSize 0\n\n"
 
@@ -256,7 +277,14 @@ def main():
                 if relation_type == "Inheritance":
                     plantuml_code += f"{entity1} <|-- {entity2}\n"
                 elif relation_type == "Association":
-                    plantuml_code += f"{entity1} \"{multiplicity.split('...')[0]}\" --> \"{multiplicity.split('...')[1]}\" {entity2}\n"
+                    if '-' in multiplicity:
+                        multiplicity_start, multiplicity_end = multiplicity.split('-')
+                        plantuml_code += f"{entity1} \"{multiplicity_start}\" --> \"{multiplicity_end}\" {entity2}\n"
+                    elif '..' in multiplicity: # Multiplicity range
+                        multiplicity_start, multiplicity_end = multiplicity.split('..')
+                        plantuml_code += f"{entity1} \"{multiplicity_start}\" --> \"{multiplicity_end}\" {entity2}\n"
+                    else:
+                        plantuml_code += f"{entity1} --> {entity2}\n"
                 elif relation_type == "Aggregation":
                     plantuml_code += f"{entity1} o-- {entity2}\n"
                 elif relation_type == "Composition":
@@ -289,7 +317,8 @@ def main():
             # show the download button
             st.write("## Download UML Diagram")
             st.markdown(f'<a href="data:file/txt;base64,{file_to_base64(uml_file).decode()}" download="{uml_file}">Download PlantUML file</a>', unsafe_allow_html=True)
-
+            st.write("## Download Image")
+            st.markdown(f'<a href="data:image/png;base64,{file_to_base64(uml_image_file).decode()}" download="{uml_image_file}">Download Image</a>', unsafe_allow_html=True)
 
 if __name__=="__main__":
     main()
